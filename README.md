@@ -2,7 +2,7 @@
 
 基于 **Hilbert 曲线**的图片像素混淆工具，使用 WebAssembly 加速处理。
 
-> 🔗 **在线体验**：[GitHub Pages 链接]（部署后替换）
+🔗 [**在线体验**](https://tf748i5gf5t.github.io/Hilbert-curve-Image-Obfuscator/web/)
 
 ![demo](https://img.shields.io/badge/WebAssembly-654FF0?style=for-the-badge&logo=webassembly&logoColor=white)
 ![license](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
