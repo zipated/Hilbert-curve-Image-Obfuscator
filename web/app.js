@@ -12,6 +12,7 @@ const urlInput = document.getElementById("url-ipt");
 const urlUploadBtn = document.getElementById("url-upload-btn");
 const urlError = document.getElementById("url-error");
 const clearUrlBtn = document.getElementById("clear-url-btn");
+const btn_paste = document.getElementById("paste-btn");
 
 // 存储原始图片的对象URL
 let originalImageSrc = null;
@@ -137,6 +138,43 @@ function handleNewImage(imageBlob) {
     updateButtonStates(true);
 }
 
+// --- 从剪贴板粘贴图片 ---
+async function pasteFromClipboard() {
+    try {
+        showLoader(true);
+        updateButtonStates(false);
+        
+        // 读取剪贴板内容
+        const items = await navigator.clipboard.read();
+        
+        // 查找图片项
+        let imageItem = null;
+        for (const item of items) {
+            if (item.types.some(type => type.startsWith('image/'))) {
+                imageItem = item;
+                break;
+            }
+        }
+        
+        if (!imageItem) {
+            throw new Error('剪贴板中没有图片数据');
+        }
+        
+        // 获取图片Blob
+        const imageType = imageItem.types.find(type => type.startsWith('image/'));
+        const blob = await imageItem.getType(imageType);
+        
+        handleNewImage(blob);
+    } catch (error) {
+        console.error('粘贴图片失败:', error);
+        urlError.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> 粘贴失败: ${error.message}`;
+        urlError.classList.remove('hidden');
+        setTimeout(() => urlError.classList.add('hidden'), 5000);
+        showLoader(false);
+        updateButtonStates(true);
+    }
+}
+
 // --- 事件监听 ---
 
 // 文件输入框变化 (上传新文件)
@@ -218,6 +256,35 @@ btn_revert.addEventListener('click', () => {
 
 // 删除按钮
 btn_del.addEventListener('click', resetUI);
+
+// 粘贴按钮
+btn_paste.addEventListener('click', pasteFromClipboard);
+
+// 全局粘贴事件监听
+document.addEventListener('paste', async (e) => {
+    // 检查是否有图片数据
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+            e.preventDefault();
+            try {
+                showLoader(true);
+                updateButtonStates(false);
+                
+                const blob = items[i].getAsFile();
+                handleNewImage(blob);
+            } catch (error) {
+                console.error('粘贴图片失败:', error);
+                urlError.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> 粘贴失败: ${error.message}`;
+                urlError.classList.remove('hidden');
+                setTimeout(() => urlError.classList.add('hidden'), 5000);
+                showLoader(false);
+                updateButtonStates(true);
+            }
+            break;
+        }
+    }
+});
 
 // --- 点击和拖拽上传功能 ---
 
